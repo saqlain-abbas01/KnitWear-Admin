@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
+import { LayoutDashboard, Package, Settings, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,12 +25,66 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const navItems = [
+    {
+      title: "Dashboard",
+      href: "/admin",
+      icon: LayoutDashboard,
+    },
+    {
+      title: "Products",
+      href: "/admin/products",
+      icon: Package,
+    },
+    {
+      title: "Users",
+      href: "/admin/users",
+      icon: Users,
+    },
+    {
+      title: "Settings",
+      href: "/admin/settings",
+      icon: Settings,
+    },
+  ];
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
-        {children}
+        <div className="container mx-auto max-w-7xl flex min-h-screen flex-col">
+          <header className="sticky top-0 z-10 border-b bg-background">
+            <div className="container flex h-16 items-center justify-between py-4">
+              <div className="flex items-center gap-2">
+                <Link href="/admin" className="font-bold">
+                  Admin Panel
+                </Link>
+              </div>
+            </div>
+          </header>
+          <div className="container flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
+            <aside className="fixed top-16 z-30 -ml-2 hidden h-[calc(100vh-4rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block">
+              <nav className="grid items-start px-2 py-4 text-sm">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted",
+                      item.href.startsWith("/admin/products") && "bg-muted"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </Link>
+                ))}
+              </nav>
+            </aside>
+            <main className="flex w-full flex-col overflow-hidden">
+              {children}
+            </main>
+          </div>
+        </div>
       </body>
     </html>
   );
