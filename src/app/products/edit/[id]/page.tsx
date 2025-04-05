@@ -41,7 +41,7 @@ const formSchema = z.object({
     .min(1, "Discount must be at least 1%")
     .max(99, "Discount must be at most 99%")
     .optional(),
-  stock: z.number().min(0, "Stock cannot be negative").default(0),
+  stock: z.number().min(0, "Stock cannot be negative").optional(),
   brand: z.string().min(1, "Brand is required"),
   category: z.string().min(1, "Category is required"),
   images: z.array(z.string()).min(1, "At least one image is required"),
@@ -132,11 +132,11 @@ export default function EditProductPage({
       setIsLoading(false);
     } else {
       // Handle product not found
-      toast({
-        title: "Product not found",
-        description: "The requested product could not be found.",
-        variant: "destructive",
-      });
+      //   toast({
+      //     title: "Product not found",
+      //     description: "The requested product could not be found.",
+      //     variant: "destructive",
+      //   });
       router.push("/admin/products");
     }
   }, [product, form, router]);
@@ -332,7 +332,7 @@ export default function EditProductPage({
               <FormField
                 control={form.control}
                 name="images"
-                render={({ field }) => (
+                render={({}) => (
                   <FormItem>
                     <FormLabel>Product Images</FormLabel>
                     <FormControl>
