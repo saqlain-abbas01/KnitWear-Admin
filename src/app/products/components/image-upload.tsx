@@ -21,20 +21,12 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
     setIsMounted(true);
   }, []);
 
-  // This would be replaced with a real image upload function in a production app
   const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-
-    // In a real app, you would upload the file to a storage service
-    // and get back a URL. For this demo, we'll use placeholder images.
-    const newImages = Array.from(files).map(
-      (_, index) =>
-        `/placeholder.svg?height=200&width=200&text=Image ${
-          value.length + index + 1
-        }`
+    const newImages = Array.from(files).map((file) =>
+      URL.createObjectURL(file)
     );
-
     onChange([...value, ...newImages]);
   };
 

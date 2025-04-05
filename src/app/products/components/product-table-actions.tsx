@@ -35,7 +35,7 @@ export function ProductsTableActions({ product }: ProductsTableActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleEdit = () => {
-    router.push(`/admin/products/edit/${product.id}`);
+    router.push(`/products/edit/${product.id}`);
   };
 
   const handleDelete = () => {

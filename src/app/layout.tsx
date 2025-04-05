@@ -4,6 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import Sidebar from "@/components/ui/Sidebar";
 import TanstackProvider from "./provider/tanstackProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({
             <Sidebar />
             <main className="flex w-full flex-col overflow-hidden">
               <TanstackProvider>{children}</TanstackProvider>
+              <Toaster />
             </main>
           </div>
         </div>
