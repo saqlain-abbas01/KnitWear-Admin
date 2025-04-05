@@ -11,14 +11,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts } from "@/lib/api/products";
+import { fetchProducts, fetchProductsCount } from "@/lib/api/products";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useState } from "react";
+import { Product } from "../types/types";
 
 export default function Home() {
-  const { data } = useQuery({
+  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+  const { data, isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
   });
-  console.log(data);
+  const { data: totalCount } = useQuery({
+    queryKey: ["allProductsCount"],
+    queryFn: fetchProductsCount,
+  });
+  console.log(totalCount);
+  useEffect(() => {
+    if (data && data) {
+      setRecentProducts(data);
+    }
+  }, [data]);
+
   return (
     <div className="container mx-auto  py-6 space-y-8">
       <div className="flex justify-between items-center">
@@ -34,10 +48,12 @@ export default function Home() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">120</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold">
+              {totalCount ?? "no products"}
+            </div>
+            {/* <p className="text-xs text-muted-foreground">
               +10% from last month
-            </p>
+            </p> */}
           </CardContent>
         </Card>
         <Card>
@@ -85,34 +101,51 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
-                    <Package className="h-5 w-5" />
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, idx) => (
+                  <div key={idx} className="flex items-center gap-4">
+                    <Skeleton />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton />
+                      <Skeleton />
+                    </div>
+                    <Skeleton />
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      Product {i}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Added on {new Date().toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="font-medium">
-                    ${(Math.random() * 1000).toFixed(2)}
-                  </div>
+                ))}
+              </div>
+            ) : recentProducts?.length === 0 ? (
+              <p>No recent products to show</p>
+            ) : (
+              <>
+                <div className="space-y-4">
+                  {recentProducts?.map((i) => (
+                    <div key={i._id} className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
+                        <Package className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          Product {i.title}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Added on {new Date(i?.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="font-medium">${i.price}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/products" className="flex items-center gap-1">
-                  View all products
-                  <ArrowUpRight className="h-3 w-3" />
-                </Link>
-              </Button>
-            </div>
+                <div className="mt-4 flex justify-end">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/products" className="flex items-center gap-1">
+                      View all products
+                      <ArrowUpRight className="h-3 w-3" />
+                    </Link>
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card className="col-span-3">

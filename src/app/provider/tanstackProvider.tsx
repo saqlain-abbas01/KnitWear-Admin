@@ -8,7 +8,7 @@ interface TanStackProviderProps {
 }
 
 const TanstackProvider = ({ children }: TanStackProviderProps) => {
-  const [queryClient] = useState(() => new QueryClient()); // Array destructuring
+  const [queryClient] = useState(() => new QueryClient());
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
