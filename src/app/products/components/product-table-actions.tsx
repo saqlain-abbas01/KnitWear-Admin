@@ -20,6 +20,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteProductById } from "@/lib/api/products";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -33,17 +36,27 @@ interface ProductsTableActionsProps {
 export function ProductsTableActions({ product }: ProductsTableActionsProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteProductById,
+    onSuccess: () => {
+      toast("Product deleted successfully");
+      setShowDeleteDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: () => {
+      toast("Failed to delete product");
+    },
+  });
 
   const handleEdit = () => {
     router.push(`/products/edit/${product.id}`);
   };
 
   const handleDelete = () => {
-    // In a real application, you would call an API to delete the product
     console.log(`Deleting product: ${product.id}`);
-    setShowDeleteDialog(false);
-    // After successful deletion, you might want to refresh the data
-    // router.refresh()
+    deleteMutation.mutate(product.id);
   };
 
   return (
@@ -87,8 +100,12 @@ export function ProductsTableActions({ product }: ProductsTableActionsProps) {
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
+            <Button
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={handleDelete}
+            >
+              {deleteMutation.isPending ? "Deleting.." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

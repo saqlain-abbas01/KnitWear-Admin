@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  LoaderCircle,
   PlusCircle,
   Search,
-  SlidersHorizontal,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,64 +23,49 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ProductsTableActions } from "./components/product-table-actions";
-import { ProductsTableFilter } from "./components/product-table-filters";
+// import { ProductsTableFilter } from "./components/product-table-filters";
+import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAllProducts } from "@/lib/api/products";
+import { Product } from "../types/types";
 
 // Mock data for demonstration
-const products = [
-  {
-    id: "1",
-    title: "Smartphone X",
-    description: "Latest smartphone with advanced features",
-    price: 999,
-    discountPercentage: 10,
-    rating: 4.5,
-    stock: 50,
-    brand: "TechBrand",
-    category: "Electronics",
-    images: ["/placeholder.svg?height=80&width=80"],
-    deleted: false,
-  },
-  {
-    id: "2",
-    title: "Laptop Pro",
-    description: "High-performance laptop for professionals",
-    price: 1499,
-    discountPercentage: 5,
-    rating: 4.8,
-    stock: 30,
-    brand: "ComputerCo",
-    category: "Electronics",
-    images: ["/placeholder.svg?height=80&width=80"],
-    deleted: false,
-  },
-  {
-    id: "3",
-    title: "Wireless Headphones",
-    description: "Premium noise-cancelling headphones",
-    price: 299,
-    discountPercentage: 15,
-    rating: 4.3,
-    stock: 100,
-    brand: "AudioTech",
-    category: "Audio",
-    images: ["/placeholder.svg?height=80&width=80"],
-    deleted: false,
-  },
-];
 
 export default function ProductsPage() {
   const router = useRouter();
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const pathanme = usePathname();
+  // const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchAllProducts,
+  });
+  console.log("fetched data:", data?.products);
+  useEffect(() => {
+    if (data.products) {
+      setProducts(data.products);
+    }
+  }, [data, pathanme]);
 
   // Filter products based on search query
-  const filteredProducts = products.filter(
-    (product) =>
-      !product.deleted &&
-      (product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // const filteredProducts = products?.filter(
+  //   (product: Product) =>
+  //     !product.deleted &&
+  //     (product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //       product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //       product.category.toLowerCase().includes(searchQuery.toLowerCase()))
+  // );
+
+  if (isLoading || !data || data.Products) {
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+        <h1>Loading Products please wait a moment </h1>{" "}
+        <LoaderCircle className="w-4 h-4 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -103,17 +88,17 @@ export default function ProductsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button
+        {/* <Button
           variant="outline"
           size="sm"
           onClick={() => setIsFilterOpen(!isFilterOpen)}
         >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           Filter
-        </Button>
+        </Button> */}
       </div>
 
-      {isFilterOpen && <ProductsTableFilter />}
+      {/* {isFilterOpen && <ProductsTableFilter />} */}
 
       <div className="rounded-md border">
         <Table>
@@ -131,18 +116,20 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length === 0 ? (
+            {products.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-24 text-center">
                   No products found.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => (
+              products.map((product: Product) => (
                 <TableRow key={product.id}>
                   <TableCell>
-                    <img
+                    <Image
                       src={product.images[0] || "/placeholder.svg"}
+                      width={120}
+                      height={100}
                       alt={product.title}
                       className="h-10 w-10 rounded-md object-cover"
                     />
@@ -160,7 +147,7 @@ export default function ProductsPage() {
                     {product.stock}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {product.rating.toFixed(1)}
+                    {product.rating ?? 0}
                   </TableCell>
                   <TableCell className="text-right">
                     <ProductsTableActions product={product} />
@@ -174,9 +161,8 @@ export default function ProductsPage() {
 
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          Showing <strong>1</strong> to{" "}
-          <strong>{filteredProducts.length}</strong> of{" "}
-          <strong>{filteredProducts.length}</strong> results
+          Showing <strong>1</strong> to <strong>{products.length}</strong> of{" "}
+          <strong>{products.length}</strong> results
         </div>
         <div className="space-x-2">
           <Button variant="outline" size="sm" disabled>

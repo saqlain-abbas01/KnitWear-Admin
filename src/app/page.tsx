@@ -1,11 +1,10 @@
 import React from "react";
-import Home from "./dashboard/page";
+
+import { redirect } from "next/navigation";
+
 const Page = () => {
-  return (
-    <>
-      <Home />
-    </>
-  );
+  redirect("/dashboard");
+  return <></>;
 };
 
 export default Page;

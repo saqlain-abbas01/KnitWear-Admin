@@ -11,16 +11,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts, fetchProductsCount } from "@/lib/api/products";
+import { fetchRecentProducts, fetchProductsCount } from "@/lib/api/products";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { Product } from "../types/types";
+import { usePathname } from "next/navigation";
 
 export default function Home() {
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+  const pathname = usePathname();
   const { data, isLoading } = useQuery({
     queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryFn: fetchRecentProducts,
   });
   const { data: totalCount } = useQuery({
     queryKey: ["allProductsCount"],
@@ -28,11 +30,11 @@ export default function Home() {
   });
   console.log(totalCount);
   useEffect(() => {
-    if (data && data) {
-      setRecentProducts(data);
+    if (data) {
+      setRecentProducts(data.recentProducts);
     }
-  }, [data]);
-
+  }, [data, pathname]);
+  console.log("recent products:", recentProducts);
   return (
     <div className="container mx-auto  py-6 space-y-8">
       <div className="flex justify-between items-center">
@@ -120,7 +122,7 @@ export default function Home() {
               <>
                 <div className="space-y-4">
                   {recentProducts?.map((i) => (
-                    <div key={i._id} className="flex items-center gap-4">
+                    <div key={i.id} className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
                         <Package className="h-5 w-5" />
                       </div>
@@ -155,13 +157,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                "Electronics",
-                "Clothing",
-                "Home & Kitchen",
-                "Beauty",
-                "Sports",
-              ].map((category, i) => (
+              {["Men Underwear", "Women Underwear"].map((category, i) => (
                 <div key={i} className="flex items-center gap-4">
                   <div className="w-full space-y-2">
                     <div className="flex items-center justify-between">

@@ -34,14 +34,10 @@ import {
   fetchProductsById,
 } from "@/lib/api/products";
 import { formSchema } from "@/app/schema/createProductFormSchema";
-
-// Schema for edit mode: all fields optional except images
-const editFormSchema = formSchema.partial().extend({
-  images: z.array(z.string()).min(1, "At least one image is required"),
-});
+import { LoaderCircle } from "lucide-react";
 
 // Union type for form values
-type FormValues = z.infer<typeof formSchema> | z.infer<typeof editFormSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 export default function AddEditProduct() {
   const router = useRouter();
@@ -55,10 +51,11 @@ export default function AddEditProduct() {
     queryKey: ["product", productId],
     queryFn: () => fetchProductsById(productId!),
     enabled: !!productId,
+    refetchOnWindowFocus: false,
   });
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(isEditMode ? editFormSchema : formSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -73,7 +70,6 @@ export default function AddEditProduct() {
 
   useEffect(() => {
     if (isEditMode && product) {
-      console.log("fecth products", product);
       form.reset({
         title: product.title || "",
         description: product.description || "",
@@ -103,7 +99,6 @@ export default function AddEditProduct() {
     mutationFn: updateProduct,
     onSuccess: () => {
       toast("Product updated successfully");
-      router.push("/admin/products");
     },
     onError: () => {
       console.error("Error updating product:");
@@ -125,7 +120,20 @@ export default function AddEditProduct() {
   };
 
   if (isEditMode && isLoading) {
-    return <div>Loading product data...</div>;
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+        <h1>Loading product data...</h1>
+        <LoaderCircle className="w-4 h-4 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isEditMode && !product) {
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+        <p>Selected Product has no data!</p>
+      </div>
+    );
   }
 
   return (
@@ -271,10 +279,10 @@ export default function AddEditProduct() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="electronics">
+                        <SelectItem value="Men underwear">
                           Men Underwear
                         </SelectItem>
-                        <SelectItem value="clothing">
+                        <SelectItem value="Women underwear">
                           Women Underwear
                         </SelectItem>
                       </SelectContent>

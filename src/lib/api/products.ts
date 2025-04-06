@@ -1,11 +1,17 @@
-import { Product } from "@/app/types/types";
 import api from "./axios";
 import { z } from "zod";
 import { formSchema } from "@/app/schema/createProductFormSchema";
 
-export const fetchProducts = async (): Promise<Product[]> => {
+export const fetchAllProducts = async () => {
+  console.log("call fetch all products");
+  const response = await api.get("/products");
+  console.log("response products:", response.data);
+  return response.data;
+};
+
+export const fetchRecentProducts = async () => {
   const response = await api.get("/products/recents");
-  return response.data.recentProducts;
+  return response.data;
 };
 
 export const fetchProductsById = async (id: string) => {
@@ -40,7 +46,17 @@ export const updateProduct = async ({
   id: string;
   data: z.infer<typeof formSchema>;
 }) => {
-  console.log("edit product:", data);
-  const response = await api.put(`/products/${id}`, data);
+  console.log("edit product:", data, "id:", id);
+  const response = await api.patch(`/products/${id}`, data);
   return response.data;
+};
+
+export const deleteProductById = async (id: string) => {
+  try {
+    const response = await api.delete(`/products/${id}`);
+    console.log("deleted data:", response.data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
