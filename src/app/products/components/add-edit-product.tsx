@@ -54,6 +54,28 @@ export default function AddEditProduct() {
     refetchOnWindowFocus: false,
   });
 
+  const createMutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      form.reset();
+      toast("Product created successfully");
+    },
+    onError: () => {
+      toast("Failed to create product");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateProduct,
+    onSuccess: () => {
+      toast("Product updated successfully");
+    },
+    onError: () => {
+      console.error("Error updating product:");
+      toast("Failed to update product");
+    },
+  });
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -83,28 +105,6 @@ export default function AddEditProduct() {
       setImages(product.images || []);
     }
   }, [product, isEditMode, form]);
-
-  const createMutation = useMutation({
-    mutationFn: createProduct,
-    onSuccess: () => {
-      form.reset();
-      toast("Product created successfully");
-    },
-    onError: () => {
-      toast("Failed to create product");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: updateProduct,
-    onSuccess: () => {
-      toast("Product updated successfully");
-    },
-    onError: () => {
-      console.error("Error updating product:");
-      toast("Failed to update product");
-    },
-  });
 
   function onSubmit(values: FormValues) {
     if (pathname === "/products/new") {

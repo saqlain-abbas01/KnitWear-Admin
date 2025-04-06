@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpDown,
   MoreHorizontal,
@@ -61,6 +61,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAllOrders } from "@/lib/api/orders";
+import { Order } from "../types/types";
 // import { useToast } from "@/hooks/use-toast"
 
 // Mock data for demonstration
@@ -192,7 +195,7 @@ const getStatusColor = (status: string) => {
 };
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
@@ -201,10 +204,20 @@ export default function OrdersPage() {
   //   const { toast } = useToast()
   const router = useRouter();
 
+  const { data, isLoading } = useQuery({
+    queryKey: ["orders"],
+    queryFn: fetchAllOrders,
+  });
+
+  useEffect(() => {
+    if (data) {
+      setOrders(data.order);
+    }
+  }, [data]);
   // Filter orders based on search term
   const filteredOrders = orders.filter(
     (order) =>
-      order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -213,7 +226,7 @@ export default function OrdersPage() {
   const handleStatusChange = (orderId: string, newStatus: string) => {
     setOrders(
       orders.map((order) =>
-        order._id === orderId ? { ...order, status: newStatus } : order
+        order.id === orderId ? { ...order, status: newStatus } : order
       )
     );
 
@@ -243,7 +256,7 @@ export default function OrdersPage() {
       day: "numeric",
     });
   };
-
+  console.log("order:", orders);
   return (
     <div className="container mx-auto py-6">
       <Card>
@@ -302,7 +315,7 @@ export default function OrdersPage() {
                 ) : (
                   filteredOrders.map((order) => (
                     <TableRow key={order._id}>
-                      <TableCell className="font-medium">{order._id}</TableCell>
+                      <TableCell className="font-medium">{order.id}</TableCell>
                       <TableCell>
                         <div className="font-medium">{order.user.name}</div>
                         <div className="text-sm text-muted-foreground">

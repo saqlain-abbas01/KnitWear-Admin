@@ -50,13 +50,13 @@ export default function ProductsPage() {
   }, [data, pathanme]);
 
   // Filter products based on search query
-  // const filteredProducts = products?.filter(
-  //   (product: Product) =>
-  //     !product.deleted &&
-  //     (product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //       product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //       product.category.toLowerCase().includes(searchQuery.toLowerCase()))
-  // );
+  const filteredProducts = products?.filter(
+    (product: Product) =>
+      !product.deleted &&
+      (product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   if (isLoading || !data || data.Products) {
     return (
@@ -116,14 +116,14 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-24 text-center">
                   No products found.
                 </TableCell>
               </TableRow>
             ) : (
-              products.map((product: Product) => (
+              filteredProducts.map((product: Product) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     <Image
