@@ -44,7 +44,7 @@ export default function ProductsPage() {
   });
 
   useEffect(() => {
-    if (data.products) {
+    if (data?.products) {
       setProducts(data.products);
     }
   }, [data, pathanme]);
@@ -165,16 +165,16 @@ export default function ProductsPage() {
           <strong>{products.length}</strong> results
         </div>
         <div className="space-x-2">
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="sm">
             <ChevronsLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="sm">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="sm">
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="sm">
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>

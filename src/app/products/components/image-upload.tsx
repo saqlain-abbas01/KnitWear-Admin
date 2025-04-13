@@ -7,6 +7,7 @@ import Image from "next/image";
 import { ImagePlus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface ImageUploadProps {
   value: string[];
@@ -21,13 +22,30 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
     setIsMounted(true);
   }, []);
 
-  const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    const newImages = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
-    onChange([...value, ...newImages]);
+    const formData = new FormData();
+    Array.from(files).forEach((file) => {
+      formData.append("images", file);
+    });
+
+    try {
+      const response = await fetch("http://localhost:4000/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+      const { urls } = await response.json();
+      console.log("urls:", urls);
+      onChange([...value, ...urls]);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast("failed to upload");
+    }
   };
 
   if (!isMounted) {
