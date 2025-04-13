@@ -1,15 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpDown,
   MoreHorizontal,
   Search,
   Trash2,
-  Edit,
   Eye,
   RefreshCw,
-  UserCog,
   Shield,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -66,86 +64,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 // import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-// Mock data for demonstration
-const mockUsers = [
-  {
-    _id: "user1",
-    name: "John Doe",
-    email: "john@example.com",
-    role: "admin",
-    address: {
-      street: "123 Main St",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "USA",
-    },
-    orders: [
-      { id: "ord123", totalAmount: 109.97, status: "DELIVERED" },
-      { id: "ord456", totalAmount: 59.99, status: "SHIPPED" },
-    ],
-    createdAt: "2023-01-15T10:30:00Z",
-  },
-  {
-    _id: "user2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "user",
-    address: {
-      street: "456 Oak Ave",
-      city: "Los Angeles",
-      state: "CA",
-      zipCode: "90001",
-      country: "USA",
-    },
-    orders: [{ id: "ord789", totalAmount: 19.99, status: "DELIVERED" }],
-    createdAt: "2023-02-20T14:20:00Z",
-  },
-  {
-    _id: "user3",
-    name: "Robert Johnson",
-    email: "robert@example.com",
-    role: "user",
-    address: {
-      street: "789 Pine St",
-      city: "Chicago",
-      state: "IL",
-      zipCode: "60007",
-      country: "USA",
-    },
-    orders: [
-      { id: "ord101", totalAmount: 169.95, status: "PENDING" },
-      { id: "ord102", totalAmount: 49.99, status: "SHIPPED" },
-      { id: "ord103", totalAmount: 29.99, status: "DELIVERED" },
-    ],
-    createdAt: "2023-03-10T09:15:00Z",
-  },
-  {
-    _id: "user4",
-    name: "Emily Davis",
-    email: "emily@example.com",
-    role: "user",
-    address: null,
-    orders: [],
-    createdAt: "2023-04-05T16:45:00Z",
-  },
-  {
-    _id: "user5",
-    name: "Michael Wilson",
-    email: "michael@example.com",
-    role: "moderator",
-    address: {
-      street: "202 Elm St",
-      city: "Miami",
-      state: "FL",
-      zipCode: "33101",
-      country: "USA",
-    },
-    orders: [{ id: "ord104", totalAmount: 94.95, status: "DELIVERED" }],
-    createdAt: "2023-05-18T11:30:00Z",
-  },
-];
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteUser, fetchUser } from "@/lib/api/user";
+import { User } from "../types/types";
+import { toast } from "sonner";
 
 // Role badge colors
 const getRoleBadgeColor = (role: string) => {
@@ -170,51 +92,48 @@ const getInitials = (name: string) => {
 };
 
 export default function UsersPage() {
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User>();
+  const [userToDelete, setUserToDelete] = useState<string>();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   //   const { toast } = useToast();
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data } = useQuery({
+    queryKey: ["users"],
+    queryFn: fetchUser,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast("User deleted successfully");
+    },
+    onError: () => {
+      toast("Failed to delete user");
+    },
+  });
+
+  useEffect(() => {
+    setUsers(data);
+  }, [data]);
 
   // Filter users based on search term and role
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = users?.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-
-    return matchesSearch && matchesRole;
+    return matchesSearch;
   });
 
   // Handle user deletion
   const handleDeleteUser = (userId: string) => {
-    setUsers(users.filter((user) => user._id !== userId));
+    deleteMutation.mutate({ id: userId });
     setIsDeleteDialogOpen(false);
-
-    // toast({
-    //   title: "User Deleted",
-    //   description: `User has been deleted successfully`,
-    //   variant: "destructive",
-    // });
-  };
-
-  // Handle role change
-  const handleRoleChange = (userId: string, newRole: string) => {
-    setUsers(
-      users.map((user) =>
-        user._id === userId ? { ...user, role: newRole } : user
-      )
-    );
-
-    // toast({
-    //   title: "Role Updated",
-    //   description: `User role changed to ${newRole}`,
-    // });
   };
 
   // Format date
@@ -227,7 +146,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container py-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -289,15 +208,15 @@ export default function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {filteredUsers?.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">
                       No users found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user._id}>
+                  filteredUsers?.map((user) => (
+                    <TableRow key={user.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
@@ -310,29 +229,7 @@ export default function UsersPage() {
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Select
-                          defaultValue={user.role}
-                          onValueChange={(value) =>
-                            handleRoleChange(user._id, value)
-                          }
-                        >
-                          <SelectTrigger className="w-[130px]">
-                            <SelectValue>
-                              <Badge
-                                variant="outline"
-                                className={getRoleBadgeColor(user.role)}
-                              >
-                                {user.role.charAt(0).toUpperCase() +
-                                  user.role.slice(1)}
-                              </Badge>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="moderator">Moderator</SelectItem>
-                            <SelectItem value="user">User</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Badge>{user.role}</Badge>
                       </TableCell>
                       <TableCell>{formatDate(user.createdAt)}</TableCell>
                       <TableCell>{user.orders.length}</TableCell>
@@ -356,18 +253,11 @@ export default function UsersPage() {
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                router.push(`/admin/users/edit/${user._id}`)
-                              }
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit User
-                            </DropdownMenuItem>
+
                             <DropdownMenuItem
                               className="text-red-600"
                               onClick={() => {
-                                setUserToDelete(user._id);
+                                setUserToDelete(user.id);
                                 setIsDeleteDialogOpen(true);
                               }}
                             >
@@ -417,18 +307,6 @@ export default function UsersPage() {
                     </Badge>
                   </div>
                 </div>
-                <div className="ml-auto flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
-                  {selectedUser.role !== "admin" && (
-                    <Button variant="outline" size="sm">
-                      <UserCog className="mr-2 h-4 w-4" />
-                      Make Admin
-                    </Button>
-                  )}
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -440,7 +318,9 @@ export default function UsersPage() {
                   <div className="space-y-2">
                     <div className="grid grid-cols-3 gap-4">
                       <div className="font-medium">User ID</div>
-                      <div className="col-span-2">{selectedUser._id}</div>
+                      <div className="col-span-2 break-words ">
+                        {selectedUser.id}
+                      </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div className="font-medium">Joined</div>
@@ -477,7 +357,7 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              {selectedUser.orders.length > 0 && (
+              {selectedUser.orders.length > 0 ? (
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Recent Orders</h3>
                   <div className="rounded-md border">
@@ -490,12 +370,10 @@ export default function UsersPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {selectedUser.orders.map((order: any) => (
+                        {selectedUser.orders.map((order) => (
                           <TableRow key={order.id}>
                             <TableCell>{order.id}</TableCell>
-                            <TableCell>
-                              ${order.totalAmount.toFixed(2)}
-                            </TableCell>
+                            <TableCell>${order.totalAmount}</TableCell>
                             <TableCell>
                               <Badge
                                 variant="outline"
@@ -516,6 +394,8 @@ export default function UsersPage() {
                     </Table>
                   </div>
                 </div>
+              ) : (
+                <span>No order</span>
               )}
             </div>
           )}
@@ -539,9 +419,10 @@ export default function UsersPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => userToDelete && handleDeleteUser(userToDelete)}
+              disabled={deleteMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

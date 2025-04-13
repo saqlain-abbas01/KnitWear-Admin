@@ -45,3 +45,14 @@ export type Order = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  address: Address;
+  orders: Order[];
+  createdAt: string;
+  updatedAt: string;
+};
