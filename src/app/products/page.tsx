@@ -42,7 +42,7 @@ export default function ProductsPage() {
     queryKey: ["products"],
     queryFn: fetchAllProducts,
   });
-  console.log("fetched data:", data?.products);
+
   useEffect(() => {
     if (data.products) {
       setProducts(data.products);

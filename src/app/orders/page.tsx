@@ -61,124 +61,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
-import { fetchAllOrders } from "@/lib/api/orders";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchAllOrders, updateOrder, deleteOrder } from "@/lib/api/orders";
 import { Order } from "../types/types";
-// import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner";
 
-// Mock data for demonstration
-const mockOrders = [
-  {
-    _id: "ord123",
-    items: [
-      { name: "Product 1", price: 29.99, quantity: 2 },
-      { name: "Product 2", price: 49.99, quantity: 1 },
-    ],
-    totalAmount: 109.97,
-    totalItems: 3,
-    user: { _id: "user1", name: "John Doe", email: "john@example.com" },
-    paymentMethod: "CREDIT_CARD",
-    status: "PENDING",
-    selectedAddress: [
-      {
-        street: "123 Main St",
-        city: "New York",
-        state: "NY",
-        zipCode: "10001",
-        country: "USA",
-      },
-    ],
-    createdAt: "2023-10-15T10:30:00Z",
-  },
-  {
-    _id: "ord124",
-    items: [{ name: "Product 3", price: 19.99, quantity: 1 }],
-    totalAmount: 19.99,
-    totalItems: 1,
-    user: { _id: "user2", name: "Jane Smith", email: "jane@example.com" },
-    paymentMethod: "PAYPAL",
-    status: "DELIVERED",
-    selectedAddress: [
-      {
-        street: "456 Oak Ave",
-        city: "Los Angeles",
-        state: "CA",
-        zipCode: "90001",
-        country: "USA",
-      },
-    ],
-    createdAt: "2023-10-14T14:20:00Z",
-  },
-  {
-    _id: "ord125",
-    items: [
-      { name: "Product 4", price: 39.99, quantity: 3 },
-      { name: "Product 5", price: 24.99, quantity: 2 },
-    ],
-    totalAmount: 169.95,
-    totalItems: 5,
-    user: { _id: "user3", name: "Robert Johnson", email: "robert@example.com" },
-    paymentMethod: "CREDIT_CARD",
-    status: "SHIPPED",
-    selectedAddress: [
-      {
-        street: "789 Pine St",
-        city: "Chicago",
-        state: "IL",
-        zipCode: "60007",
-        country: "USA",
-      },
-    ],
-    createdAt: "2023-10-13T09:15:00Z",
-  },
-  {
-    _id: "ord126",
-    items: [{ name: "Product 6", price: 59.99, quantity: 1 }],
-    totalAmount: 59.99,
-    totalItems: 1,
-    user: { _id: "user4", name: "Emily Davis", email: "emily@example.com" },
-    paymentMethod: "CASH_ON_DELIVERY",
-    status: "PENDING",
-    selectedAddress: [
-      {
-        street: "101 Maple Rd",
-        city: "Houston",
-        state: "TX",
-        zipCode: "77001",
-        country: "USA",
-      },
-    ],
-    createdAt: "2023-10-12T16:45:00Z",
-  },
-  {
-    _id: "ord127",
-    items: [
-      { name: "Product 7", price: 14.99, quantity: 4 },
-      { name: "Product 8", price: 34.99, quantity: 1 },
-    ],
-    totalAmount: 94.95,
-    totalItems: 5,
-    user: {
-      _id: "user5",
-      name: "Michael Wilson",
-      email: "michael@example.com",
-    },
-    paymentMethod: "PAYPAL",
-    status: "CANCELLED",
-    selectedAddress: [
-      {
-        street: "202 Elm St",
-        city: "Miami",
-        state: "FL",
-        zipCode: "33101",
-        country: "USA",
-      },
-    ],
-    createdAt: "2023-10-11T11:30:00Z",
-  },
-];
+type OrderItem = {
+  product: string;
+  name: string;
+  quantity: number;
+  price: number;
+};
 
-// Status badge colors
 const getStatusColor = (status: string) => {
   switch (status) {
     case "PENDING":
@@ -197,16 +91,39 @@ const getStatusColor = (status: string) => {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order>();
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  //   const { toast } = useToast()
-  const router = useRouter();
 
-  const { data, isLoading } = useQuery({
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data } = useQuery({
     queryKey: ["orders"],
     queryFn: fetchAllOrders,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast("Order Status updated successfully");
+    },
+    onError: () => {
+      toast("Failed to update order status");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast("Order deleted successfully");
+    },
+    onError: () => {
+      toast("Failed to delete  status");
+    },
   });
 
   useEffect(() => {
@@ -214,38 +131,20 @@ export default function OrdersPage() {
       setOrders(data.order);
     }
   }, [data]);
-  // Filter orders based on search term
+
   const filteredOrders = orders.filter(
     (order) =>
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.id.includes(searchTerm.toLowerCase()) ||
       order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle status change
   const handleStatusChange = (orderId: string, newStatus: string) => {
-    setOrders(
-      orders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
-
-    // toast({
-    //   title: "Status Updated",
-    //   description: `Order ${orderId} status changed to ${newStatus}`,
-    // })
+    updateMutation.mutate({ id: orderId, data: { status: newStatus } });
   };
 
-  // Handle order deletion
   const handleDeleteOrder = (orderId: string) => {
-    setOrders(orders.filter((order) => order._id !== orderId));
-    setIsDeleteDialogOpen(false);
-
-    // toast({
-    //   title: "Order Deleted",
-    //   description: `Order ${orderId} has been deleted`,
-    //   variant: "destructive",
-    // })
+    deleteMutation.mutate({ id: orderId });
   };
 
   // Format date
@@ -256,7 +155,7 @@ export default function OrdersPage() {
       day: "numeric",
     });
   };
-  console.log("order:", orders);
+
   return (
     <div className="container mx-auto py-6">
       <Card>
@@ -314,7 +213,7 @@ export default function OrdersPage() {
                   </TableRow>
                 ) : (
                   filteredOrders.map((order) => (
-                    <TableRow key={order._id}>
+                    <TableRow key={order.id}>
                       <TableCell className="font-medium">{order.id}</TableCell>
                       <TableCell>
                         <div className="font-medium">{order.user.name}</div>
@@ -324,7 +223,7 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>{formatDate(order.createdAt)}</TableCell>
                       <TableCell>{order.totalItems}</TableCell>
-                      <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
+                      <TableCell>${order.totalAmount?.toFixed(2)}</TableCell>
                       <TableCell>
                         {order.paymentMethod.replace(/_/g, " ")}
                       </TableCell>
@@ -332,7 +231,7 @@ export default function OrdersPage() {
                         <Select
                           defaultValue={order.status}
                           onValueChange={(value) =>
-                            handleStatusChange(order._id, value)
+                            handleStatusChange(order.id, value)
                           }
                         >
                           <SelectTrigger className="w-[130px]">
@@ -377,7 +276,7 @@ export default function OrdersPage() {
                             <DropdownMenuItem
                               className="text-red-600"
                               onClick={() => {
-                                setOrderToDelete(order._id);
+                                setOrderToDelete(order.id);
                                 setIsDeleteDialogOpen(true);
                               }}
                             >
@@ -400,7 +299,7 @@ export default function OrdersPage() {
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Order Details - {selectedOrder?._id}</DialogTitle>
+            <DialogTitle>Order Details - {selectedOrder?.id}</DialogTitle>
             <DialogDescription>
               Complete information about this order
             </DialogDescription>
@@ -426,13 +325,13 @@ export default function OrdersPage() {
                   <h3 className="text-lg font-semibold mb-2">
                     Shipping Address
                   </h3>
-                  <p>{selectedOrder.selectedAddress[0].street}</p>
+                  <p>{selectedOrder.selectedAddress.street}</p>
                   <p>
-                    {selectedOrder.selectedAddress[0].city},{" "}
-                    {selectedOrder.selectedAddress[0].state}{" "}
-                    {selectedOrder.selectedAddress[0].zipCode}
+                    {selectedOrder.selectedAddress.city},{" "}
+                    {selectedOrder.selectedAddress.state}{" "}
+                    {selectedOrder.selectedAddress.zipCode}
                   </p>
-                  <p>{selectedOrder.selectedAddress[0].country}</p>
+                  <p>{selectedOrder.selectedAddress.country}</p>
                 </div>
               </div>
 
@@ -449,16 +348,18 @@ export default function OrdersPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedOrder.items.map((item: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>${item.price.toFixed(2)}</TableCell>
-                          <TableCell>{item.quantity}</TableCell>
-                          <TableCell className="text-right">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {selectedOrder.items.map(
+                        (item: OrderItem, index: number) => (
+                          <TableRow key={index}>
+                            <TableCell>{item.name}</TableCell>
+                            <TableCell>${item.price.toFixed(2)}</TableCell>
+                            <TableCell>{item.quantity}</TableCell>
+                            <TableCell className="text-right">
+                              ${(item.price * item.quantity).toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      )}
                       <TableRow>
                         <TableCell
                           colSpan={3}
@@ -486,30 +387,18 @@ export default function OrdersPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold mb-1">Status</h3>
-                  <Select
-                    defaultValue={selectedOrder.status}
-                    onValueChange={(value) =>
-                      handleStatusChange(selectedOrder._id, value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue>
-                        <Badge
-                          className={`${getStatusColor(
-                            selectedOrder.status
-                          )} text-white`}
-                        >
-                          {selectedOrder.status}
-                        </Badge>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PENDING">PENDING</SelectItem>
-                      <SelectItem value="SHIPPED">SHIPPED</SelectItem>
-                      <SelectItem value="DELIVERED">DELIVERED</SelectItem>
-                      <SelectItem value="CANCELLED">CANCELLED</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                  <div>
+                    <div>
+                      <Badge
+                        className={`${getStatusColor(
+                          selectedOrder.status
+                        )} text-white`}
+                      >
+                        {selectedOrder.status}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -534,9 +423,10 @@ export default function OrdersPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => orderToDelete && handleDeleteOrder(orderToDelete)}
+              disabled={deleteMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting.." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

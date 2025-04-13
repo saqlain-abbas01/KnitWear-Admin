@@ -1,8 +1,30 @@
 import api from "./axios";
 
 export const fetchAllOrders = async () => {
-  console.log("call fetch all products");
   const response = await api.get("/orders");
-  console.log("response orders:", response.data);
   return response.data;
+};
+
+export const updateOrder = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: { status: string };
+}) => {
+  try {
+    const response = await api.put(`/orders/${id}`, data);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteOrder = async ({ id }: { id: string }) => {
+  try {
+    const response = await api.delete(`/orders/${id}`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
 };
