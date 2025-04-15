@@ -24,9 +24,41 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
 
   const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) {
+      toast.error("No files selected");
+      return;
+    }
+
+    // Validation constants for e-commerce
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+
+    const validFiles: File[] = [];
+    for (const file of Array.from(files)) {
+      // Validate image type
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          `"${file.name}" is not a valid image type. Use JPEG, PNG, GIF, or WebP.`
+        );
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > maxSize) {
+        toast.error(`"${file.name}" exceeds 5MB limit.`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) {
+      toast.error("No valid images to upload");
+      return;
+    }
+
     const formData = new FormData();
-    Array.from(files).forEach((file) => {
+    validFiles.forEach((file) => {
       formData.append("images", file);
     });
 
@@ -40,7 +72,6 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
         throw new Error("Upload failed");
       }
       const { urls } = await response.json();
-      console.log("urls:", urls);
       onChange([...value, ...urls]);
     } catch (error) {
       console.error("Upload error:", error);

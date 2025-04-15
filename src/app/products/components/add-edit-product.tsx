@@ -43,6 +43,7 @@ export default function AddEditProduct() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
+
   const [images, setImages] = useState<string[]>([]);
   const isEditMode = pathname.startsWith("/products/edit/");
   const productId = isEditMode ? (params.id as string) : null;
@@ -59,7 +60,9 @@ export default function AddEditProduct() {
     onSuccess: () => {
       form.reset();
       toast("Product created successfully");
+      router.push("/products");
     },
+
     onError: () => {
       toast("Failed to create product");
     },
@@ -69,7 +72,9 @@ export default function AddEditProduct() {
     mutationFn: updateProduct,
     onSuccess: () => {
       toast("Product updated successfully");
+      router.push("/products");
     },
+
     onError: () => {
       console.error("Error updating product:");
       toast("Failed to update product");
