@@ -57,3 +57,19 @@ export type User = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type Brand = {
+  id: string;
+  label: string;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ApiErrorResponse = {
+  error?: {
+    message?: string;
+    type?: string;
+    details?: Record<string, unknown>;
+  };
+};

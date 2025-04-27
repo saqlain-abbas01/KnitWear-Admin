@@ -29,6 +29,11 @@ const Sidebar = () => {
       href: "/users",
       icon: Users,
     },
+    {
+      title: "Brands",
+      href: "/brand",
+      icon: Users,
+    },
   ];
   return (
     <>

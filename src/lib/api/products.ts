@@ -26,6 +26,7 @@ export const fetchProductsCount = async () => {
 export const createProduct = async (data: z.infer<typeof formSchema>) => {
   try {
     const response = await api.post("/products", data);
+    console.log("response:", response);
     return response.data as z.infer<typeof formSchema>;
   } catch (error) {
     throw error;

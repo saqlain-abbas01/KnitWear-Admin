@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,8 @@ import {
 } from "@/lib/api/products";
 import { formSchema } from "@/app/schema/createProductFormSchema";
 import { LoaderCircle } from "lucide-react";
+import { fecthAllBrands } from "@/lib/api/brand";
+import { ApiErrorResponse, Brand } from "@/app/types/types";
 
 // Union type for form values
 type FormValues = z.infer<typeof formSchema>;
@@ -55,6 +58,14 @@ export default function AddEditProduct() {
     refetchOnWindowFocus: false,
   });
 
+  const { data } = useQuery({
+    queryKey: ["brands"],
+    queryFn: () => fecthAllBrands(),
+    enabled: !!productId,
+  });
+
+  console.log("brands", data);
+
   const createMutation = useMutation({
     mutationFn: createProduct,
     onSuccess: () => {
@@ -63,8 +74,11 @@ export default function AddEditProduct() {
       router.push("/products");
     },
 
-    onError: () => {
-      toast("Failed to create product");
+    onError: (error) => {
+      console.log("error in creating product", error);
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      const errorMessage = axiosError.response?.data?.error?.message;
+      toast(`Failed to create product ${errorMessage}`);
     },
   });
 
@@ -261,9 +275,24 @@ export default function AddEditProduct() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Brand</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Brand name" {...field} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select brand" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {data &&
+                            data.map((brand: Brand) => (
+                              <SelectItem value={brand.value} key={brand.id}>
+                                {brand.value}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
