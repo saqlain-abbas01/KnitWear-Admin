@@ -13,6 +13,10 @@ export const formSchema = z.object({
     .max(99, "Discount must be at most 99%")
     .optional(),
   stock: z.number().min(0, "Stock cannot be negative").optional(),
+  size: z.enum(["xs", "s", "m", "l", "xl"], {
+    required_error: "Size is required",
+    invalid_type_error: "Invalid size",
+  }),
   brand: z.string().min(1, "Brand is required"),
   category: z.string().min(1, "Category is required"),
   images: z.array(z.string()).min(1, "At least one image is required"),

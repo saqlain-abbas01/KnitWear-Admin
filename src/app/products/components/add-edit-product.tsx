@@ -103,6 +103,7 @@ export default function AddEditProduct() {
         price: product.price || undefined,
         discountPercentage: product.discountPercentage || undefined,
         stock: product.stock || undefined,
+        size: product.size || undefined,
         brand: product.brand || "",
         category: product.category || "",
         images: product.images || [],
@@ -147,10 +148,7 @@ export default function AddEditProduct() {
         <h1 className="text-3xl font-bold">
           {isEditMode ? "Edit Product" : "Add New Product"}
         </h1>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/admin/products")}
-        >
+        <Button variant="outline" onClick={() => router.push("/products")}>
           Cancel
         </Button>
       </div>
@@ -284,14 +282,23 @@ export default function AddEditProduct() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Men underwear">
-                          Men Underwear
-                        </SelectItem>
-                        <SelectItem value="Women underwear">
-                          Women Underwear
-                        </SelectItem>
+                        <SelectItem value="men">Men Underwear</SelectItem>
+                        <SelectItem value="women">Women Underwear</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="size"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Size</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Size..." {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
