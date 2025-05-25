@@ -60,8 +60,7 @@ export default function AddEditProduct() {
 
   const { data } = useQuery({
     queryKey: ["brands"],
-    queryFn: () => fecthAllBrands(),
-    enabled: !!productId,
+    queryFn: fecthAllBrands,
   });
 
   console.log("brands", data);

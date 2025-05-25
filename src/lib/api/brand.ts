@@ -12,9 +12,10 @@ export const createBrand = async (data: z.infer<typeof formSchema>) => {
 };
 
 export const fecthAllBrands = async () => {
+  console.log("fecth brands from api..");
   try {
     const response = await api.get("/brands");
-
+    console.log("brands response", response.data);
     return response.data;
   } catch (error) {
     throw error;
