@@ -71,7 +71,9 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
       if (!response.ok) {
         throw new Error("Upload failed");
       }
-      const { urls } = await response.json();
+      console.log("response", response);
+      const result = await response.json();
+      const urls = result.data;
       onChange([...value, ...urls]);
     } catch (error) {
       console.error("Upload error:", error);
