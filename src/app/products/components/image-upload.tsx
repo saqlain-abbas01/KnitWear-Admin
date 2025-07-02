@@ -77,7 +77,7 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
       onChange([...value, ...urls]);
     } catch (error) {
       console.error("Upload error:", error);
-      toast("failed to upload");
+      toast.error("failed to upload");
     }
   };
 

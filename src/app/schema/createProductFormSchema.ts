@@ -19,5 +19,6 @@ export const formSchema = z.object({
   }),
   brand: z.string().min(1, "Brand is required"),
   category: z.string().min(1, "Category is required"),
+  subCategory: z.string().min(1, "Subcategory is required"),
   images: z.array(z.string()).min(1, "At least one image is required"),
 });

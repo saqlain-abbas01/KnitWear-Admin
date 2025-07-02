@@ -42,6 +42,23 @@ import { ApiErrorResponse, Brand } from "@/app/types/types";
 // Union type for form values
 type FormValues = z.infer<typeof formSchema>;
 
+const womenSubCategories = [
+  { label: "Bras", value: "bras" },
+  { label: "Panties", value: "panties" },
+  { label: "Lingerie Sets", value: "sets" },
+  { label: "Sleepwear", value: "sleepwear" },
+  { label: "Shapewear", value: "shapewear" },
+  { label: "Loungewear", value: "loungewear" },
+];
+
+const menSubCategories = [
+  { label: "Underwear", value: "underwear" },
+  { label: "Boxers", value: "boxers" },
+  { label: "Undershirts", value: "undershirts" },
+  { label: "Loungewear", value: "loungewear" },
+  { label: "Sleepwear", value: "sleepwear" },
+];
+
 export default function AddEditProduct() {
   const router = useRouter();
   const pathname = usePathname();
@@ -104,6 +121,7 @@ export default function AddEditProduct() {
       stock: undefined,
       brand: "",
       category: "",
+      subCategory: "",
       images: [],
     },
   });
@@ -119,6 +137,7 @@ export default function AddEditProduct() {
         size: product.size || undefined,
         brand: product.brand || "",
         category: product.category || "",
+        subCategory: product.subCategory || "",
         images: product.images || [],
       });
       setImages(product.images || []);
@@ -318,6 +337,45 @@ export default function AddEditProduct() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="subCategory"
+                render={({ field }) => {
+                  const category = form.watch("category");
+
+                  const subcategories =
+                    category === "men"
+                      ? menSubCategories // skip "All Men"
+                      : category === "women"
+                      ? womenSubCategories // skip "All Women"
+                      : [];
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Subcategory</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select subcategory" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {subcategories.map((item) => (
+                            <SelectItem value={item.value} key={item.label}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
               <FormField
                 control={form.control}
                 name="size"
