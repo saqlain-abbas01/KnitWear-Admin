@@ -67,9 +67,21 @@ export type Brand = {
 };
 
 export type ApiErrorResponse = {
-  error?: {
-    message?: string;
-    type?: string;
-    details?: Record<string, unknown>;
-  };
+  message?: string;
+  type?: string;
+  details?: Record<string, unknown>;
+};
+
+export type UserProfile = {
+  id?: string;
+  name: string;
+  email: string;
+  password: Buffer;
+  role: string;
+  image?: string;
+  address: Address;
+  orders: Array<Order>; // This assumes ObjectId of Order is stored as a string, but it can also be typed as ObjectId if needed
+  salt: Buffer;
+  createdAt: Date;
+  updatedAt: Date;
 };

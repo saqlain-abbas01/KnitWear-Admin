@@ -15,26 +15,36 @@ import { fetchRecentProducts, fetchProductsCount } from "@/lib/api/products";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { Product } from "../types/types";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { fetchUserProfile } from "@/lib/api/user";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function Home() {
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
   const pathname = usePathname();
+  const route = useRouter();
+
+  const user = useUserStore((state) => state.user);
+  console.log("user", user);
+
   const { data, isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: fetchRecentProducts,
   });
+
   const { data: totalCount } = useQuery({
     queryKey: ["allProductsCount"],
     queryFn: fetchProductsCount,
   });
-  console.log(totalCount);
+
   useEffect(() => {
     if (data) {
       setRecentProducts(data.recentProducts);
     }
   }, [data, pathname]);
-  console.log("recent products:", recentProducts);
+
+  // if (!user) return route.push("/auth/signin");
+
   return (
     <div className="container mx-auto  py-6 space-y-8">
       <div className="flex justify-between items-center">

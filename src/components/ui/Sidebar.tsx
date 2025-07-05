@@ -7,7 +7,9 @@ import { usePathname } from "next/navigation";
 
 const Sidebar = () => {
   const pathname = usePathname();
+
   console.log(pathname);
+
   const navItems = [
     {
       title: "Dashboard",
@@ -37,8 +39,8 @@ const Sidebar = () => {
   ];
   return (
     <>
-      <aside className="fixed top-16 z-30 -ml-2 hidden h-[calc(100vh-4rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block">
-        <nav className="grid items-start px-2 py-4 text-sm">
+      <aside className="fixed top-16 z-30 -ml-2 hidden h-[calc(100vh-4rem)] max-w-[200px] shrink-0 overflow-y-auto border-r md:sticky md:block">
+        <nav className="grid items-start  py-4 text-sm">
           {navItems.map((item) => (
             <Link
               key={item.href}
