@@ -15,7 +15,7 @@ export const createUser = async (data: CreateUser) => {
   return response.data;
 };
 
-export const authUser = async (data: any) => {
+export const authUser = async (data: unknown) => {
   try {
     const response = await api.post("/auth/adminSignIn", data, {
       withCredentials: true,

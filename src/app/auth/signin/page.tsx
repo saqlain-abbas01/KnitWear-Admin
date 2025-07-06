@@ -49,7 +49,7 @@ export default function LoginPage() {
     mutationFn: authUser,
     onSuccess: () => {
       toast.success("logged In sucessfully");
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["adminProfile"] });
       router.push("/");
     },
     onError: (error) => {
@@ -59,18 +59,8 @@ export default function LoginPage() {
     },
   });
 
-  const googleAuthMutation = useMutation({
-    mutationFn: async () => {
-      window.location.href = "http://localhost:4000/auth/google";
-    },
-  });
-
-  async function onSubmit(data: LoginFormValues) {
+  const onSubmit = (data: LoginFormValues) => {
     mutation.mutate(data);
-  }
-
-  const handleGoogleAuth = () => {
-    googleAuthMutation.mutate();
   };
 
   return (
@@ -155,7 +145,7 @@ export default function LoginPage() {
 
       <div className="mt-6 text-center text-sm">
         <p className="text-muted-foreground">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/auth/signup" className="text-primary hover:underline">
             Sign up
           </Link>

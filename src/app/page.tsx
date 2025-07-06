@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/store/useUserStore";
 import { fetchUserProfile } from "@/lib/api/user";
+import { connectSocket } from "@/lib/socket";
 
 const Page = () => {
   const router = useRouter();
@@ -12,7 +13,7 @@ const Page = () => {
   const setUser = useUserStore((state) => state.setUser);
   const clearUser = useUserStore((state) => state.clearUser);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: fetchUserProfile,
   });
@@ -22,6 +23,7 @@ const Page = () => {
     if (!isLoading) {
       if (data?.user) {
         setUser(data.user);
+        connectSocket(data.user.id);
         router.replace("/dashboard"); // ✅ redirect AFTER setting user
       } else {
         clearUser();

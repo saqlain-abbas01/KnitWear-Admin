@@ -4,7 +4,6 @@
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/ui/Sidebar";
 import { Toaster } from "@/components/ui/sonner";
-import TanstackProvider from "@/app/provider/tanstackProvider";
 
 export default function LayoutShell({
   children,
