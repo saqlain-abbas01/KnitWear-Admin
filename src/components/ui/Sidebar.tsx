@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { LayoutDashboard, Package, Users } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Package, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,6 +35,11 @@ const Sidebar = () => {
       title: "Brands",
       href: "/brand",
       icon: Users,
+    },
+    {
+      title: "Chats",
+      href: "/chats",
+      icon: MessageSquare,
     },
   ];
   return (

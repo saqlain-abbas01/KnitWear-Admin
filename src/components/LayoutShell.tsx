@@ -12,7 +12,8 @@ export default function LayoutShell({
 }) {
   const pathname = usePathname();
 
-  const isAuthRoute = pathname.startsWith("/auth");
+  const isAuthRoute =
+    pathname.startsWith("/auth") || pathname.startsWith("/chats");
 
   if (isAuthRoute) {
     return (
